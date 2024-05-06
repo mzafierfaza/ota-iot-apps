@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Snackbar, { SnackbarOrigin } from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import axios from "axios";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button } from "@mui/material";
+import Paper from '@mui/material/Paper';
+import { create } from "domain";
+import { parseCookies } from "nookies";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -12,15 +17,38 @@ export default function Home() {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [stateAlert, setStateAlert] = useState(false)
   const [stateErrorMessage, setStateMessage] = useState<string>("")
-  const [dataRow, setDataRow] = useState<string>("")
+  const [stateSuccess, setStateSuccess] = useState(false)
   const inputRef = useRef<any>(null);
+  const [dataHello, setDataHello] = useState([]);
   const [dataList, setDataList] = useState([]);
-  const [list, setList] = useState([
-      { name: "file1.pdf", upload_at: "2024-05-05", user_upload: "User A" },
-      { name: "file2.docx", upload_at: "2024-05-06", user_upload: "User B" },
-      { name: "file3.jpg", upload_at: "2024-05-07", user_upload: "User C" },
-    ]);
+  const [helloName, setHelloName] = useState("");
 
+  const fetchHello = async () => {
+    const response = await axios("/api/hello");
+    setDataHello(response.data);
+  }
+
+  const fetchFiles = async (page: number) => {
+    try {
+      const response = await axios.get("/api/files", {
+        params: {
+          page: page,
+        },
+      });
+        setDataList(response.data);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  }
+ 
+
+  useEffect(() => {
+    const {token} = parseCookies();
+    setHelloName(token);
+    fetchFiles(1);
+  }, []);
+
+  // FILES DRAGF N DROP
   function handleChange(e: any) {
     e.preventDefault();
     console.log("File has been added");
@@ -31,27 +59,43 @@ export default function Home() {
   }
 
   function handleSubmitFile(e: any) { 
-    if (files.length === 0) {
+    if (!files) {
       setStateAlert(true);
       setStateMessage("No file has been submitted")
-      // fetchData();
-
-    } else if (files.length > 1) {
-      // creete a toast or alert to notify the user
-      // alert("File more than 1");    
-  } else {
-      // write submit logic here
+      return;
     }
+     // filter extensions here
+     const allowedExtensions = [".ino"];
+     const fileName = files.name.split(".")[0];
+     const fileExtension = files.name.split(".").pop();
+     if (!allowedExtensions.includes(`.${fileExtension}`)) {
+       setDragActive(false);
+       setStateAlert(true);
+       setStateMessage("File type not allowed");
+       return;
+     }
+    const data = new FormData();
+      data.append("file", files);
+      data.append("name", fileName);
+      axios.post("/api/upload", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            setStateMessage(response.data.message)
+            setStateSuccess(true)
+            fetchFiles(1);
+          }
+          setFiles(null);
+        })
+        .catch((error) => {
+          console.error("Error uploading file:", error);
+        });
   }
+    
 
-  const fetchData = async () => {
-    const response = await axios("/api/hello");
-    setDataList(response.data);
-  }
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   function handleDrop(e: any) {
     e.preventDefault();
@@ -109,14 +153,27 @@ export default function Home() {
             {stateErrorMessage}
           </MuiAlert>
         </Snackbar>
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          {dataList.map((data: any, idx: any) => (
-            <div key={idx} className="flex flex-row space-x-5">
-              <span>{data.name}</span>
+        <Snackbar
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          open={stateSuccess}
+          onClose={( ) => setStateSuccess(false)}
+          autoHideDuration={3000}
+          className="z-index-[9999]"
+        >
+          <MuiAlert
+            elevation={6}
+            variant="filled"
+            onClose={() => setStateSuccess(false)}
+            severity="success">
+            {stateErrorMessage}
+          </MuiAlert>
+        </Snackbar>
+      <div className="z-10 w-full items-center justify-between font-mono text-sm lg:flex">
+        <div className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
+            <div className="flex flex-row space-x-5">
+              <span>Hello {helloName}</span>
             </div>
-          ))}
-        </p>
+        </div>
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
           <a
             className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
@@ -136,6 +193,101 @@ export default function Home() {
           </a>
         </div>
       </div>
+      
+      <div className="w-full">
+          <div className="flex items-center justify-center py-10">
+      <form
+        className={`${
+          dragActive ? "bg-blue-400" : "bg-blue-100"
+        }  p-4 w-1/3 rounded-lg w-[900px] min-h-[10rem] text-center flex flex-col items-center justify-center`}
+        onDragEnter={handleDragEnter}
+        onSubmit={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+      >
+        {/* this input element allows us to select files for upload. We make it hidden so we can activate it when the user clicks select files */}
+        <input
+          placeholder="fileInput"
+          className="hidden"
+          ref={inputRef}
+          type="file"
+          onChange={handleChange}
+          accept=".ino"
+        />
+        
+        <p>
+          Drag & Drop files or{" "}
+          <span
+            className="font-bold text-blue-600 cursor-pointer"
+              onClick={openFileExplorer}
+          >
+            <u>Select files</u>
+          </span>{" "}
+          to upload
+        </p>
+
+        <div className="flex flex-col items-center p-3">
+          {files && (
+            <div className="flex flex-row space-x-5">
+              <span>{files.name}</span>
+              <span
+                className="text-red-500 cursor-pointer"
+                onClick={() => removeFile()}
+              >
+                remove
+              </span>
+            </div>
+          )}
+        </div>
+
+        <button
+          className="bg-black rounded-lg p-2 mt-3 w-auto"
+          onClick={handleSubmitFile}>
+          <span className="p-2 text-white">Submit</span>
+        </button>
+      </form>
+    </div>
+      </div>
+
+
+      <TableContainer component={Paper}>
+      <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <TableHead>
+          <TableRow>
+            <TableCell>Name</TableCell>
+            <TableCell align="right">URL</TableCell>
+            <TableCell align="right">Upload At</TableCell>
+            <TableCell align="right">Upload By</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {dataList.map((row) => (
+            <TableRow
+              key={row["name"]}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell component="th" scope="row">
+                {row["name"]}
+              </TableCell>
+              <TableCell align="right">
+                  <Button variant="outlined" size="small" onClick={
+                    () => {
+                      const link = document.createElement("a");
+                      link.href = row["url"];
+                      link.click();
+                    }
+                  }>
+                    Download
+                  </Button>
+                </TableCell>
+              <TableCell align="right">{row["upload_at"]}</TableCell>
+              <TableCell align="right">{row["upload_by"]}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
 
     </main>
   );

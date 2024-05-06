@@ -1,14 +1,56 @@
 import { postsReadDbClient } from "@/lib/db";
+import { NextRequest } from "next/server";
 
-export default async function fetchPosts(): Promise<any> {
+export default async function fetchFiles(page: number): Promise<any> {
     const p: Promise<any> = new Promise((resolve, reject) => {
         const client: any = postsReadDbClient();
-
         client.connect();
-        // console.log(client, "<<<< client")
 
+        const offset = (page - 1) * 10;
+        const query = 'SELECT * FROM files ORDER BY id DESC LIMIT 10 OFFSET ' + offset;
+        client.query(query, (err: any, res: any) => {
+            if (err) {
+                console.log(err.stack);
+                reject(err);
+            } else {
+                resolve(res.rows);
+            }
+        });
+    });
+
+    const result: any = await p;
+    return result;
+}
+
+export async function uploadFiles(name: string, token: string, url: string): Promise<any> {
+    const p: Promise<any> = new Promise((resolve, reject) => {
+        const client: any = postsReadDbClient();
+        client.connect();
+        const now = new Date();
+        const jakartaTimezone = 'Asia/Jakarta';
+        const jakartaTime = now.toLocaleString('en-US', { timeZone: jakartaTimezone });
+
+        const query = `INSERT INTO files (name, url, upload_by, upload_at) VALUES ('${name}','${url}','${token}', '${jakartaTime}')`;
+        client.query(query, (err: any, res: any) => {
+            if (err) {
+                console.log(err.stack);
+                reject(err);
+            } else {
+                resolve(res.rows);
+            }
+        });
+    });
+
+    const result: any = await p;
+    return result;
+}
+
+
+export async function fetchPosts(): Promise<any> {
+    const p: Promise<any> = new Promise((resolve, reject) => {
+        const client: any = postsReadDbClient();
+        client.connect();
         const query = 'SELECT * FROM test';
-
         client.query(query, (err: any, res: any) => {
             if (err) {
                 console.log(err.stack);
@@ -21,7 +63,6 @@ export default async function fetchPosts(): Promise<any> {
     });
 
     const result: any = await p;
-
     return result;
 }
 
