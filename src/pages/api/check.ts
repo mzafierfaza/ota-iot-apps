@@ -14,7 +14,7 @@ export default async function handler(
     ) {
     try {
         const data: any = await latestFile();
-            console.log(data, "<<< data")
+            // console.log(data, "<<< data")
             const data2 = data[0]
         res.status(200).json({
             ID: data2.id,
