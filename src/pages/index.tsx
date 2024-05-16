@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Butto
 import Paper from '@mui/material/Paper';
 import { create } from "domain";
 import { parseCookies } from "nookies";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -47,6 +48,17 @@ export default function Home() {
     setHelloName(token);
     fetchFiles(1);
   }, []);
+
+  function logout() {
+    document.cookie
+      .split(";")
+      .forEach(function (c) {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+    window.location.href = "/login";
+  }
 
   // FILES DRAGF N DROP
   function handleChange(e: any) {
@@ -92,6 +104,8 @@ export default function Home() {
         })
         .catch((error) => {
           console.error("Error uploading file:", error);
+          setStateAlert(true);
+          setStateMessage("Error uploading file")
         });
   }
     
@@ -181,15 +195,10 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
+            {/* LOGOUT */}
+            <Button variant="outlined" size="small" color="error" onClick= {logout}>
+              Logout
+            </Button>
           </a>
         </div>
       </div>
@@ -215,7 +224,7 @@ export default function Home() {
           onChange={handleChange}
           accept=".ino"
         />
-        
+
         <p>
           Drag & Drop files or{" "}
           <span
@@ -241,11 +250,10 @@ export default function Home() {
           )}
         </div>
 
-        <button
-          className="bg-black rounded-lg p-2 mt-3 w-auto"
-          onClick={handleSubmitFile}>
-          <span className="p-2 text-white">Submit</span>
-        </button>
+        <Button component="label" variant="contained" tabIndex={-1} startIcon={<CloudUploadIcon/>} onClick={handleSubmitFile}>
+      Upload file
+      {/* <VisuallyHiddenInput type="file" /> */}
+    </Button>
       </form>
     </div>
       </div>
@@ -262,26 +270,32 @@ export default function Home() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {dataList.map((row) => (
+          {dataList.map((row, i) => (
             <TableRow
-              key={row["name"]}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
+              key={i}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
               <TableCell component="th" scope="row">
                 {row["name"]}
               </TableCell>
               <TableCell align="right">
                   <Button variant="outlined" size="small" onClick={
                     () => {
+                      const url = process.env.NEXT_HOST_URL + row["url"];
+                      console.log(process.env.NEXT_HOST_URL, "<<< process.env.NEXT_HOST_URL")
                       const link = document.createElement("a");
-                      link.href = row["url"];
+                      link.href = url;
+                      // link.href = "http://localhost:3000/ota/" + row["url"];
                       link.click();
                     }
                   }>
                     Download
                   </Button>
                 </TableCell>
-              <TableCell align="right">{row["upload_at"]}</TableCell>
+              <TableCell align="right">
+                {
+                row["upload_at"].split("T")[0]
+              }
+              </TableCell>
               <TableCell align="right">{row["upload_by"]}</TableCell>
             </TableRow>
           ))}

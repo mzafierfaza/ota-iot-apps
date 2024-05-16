@@ -1,6 +1,25 @@
 import { postsReadDbClient } from "@/lib/db";
 import { NextRequest } from "next/server";
 
+export async function latestFile(): Promise<any> {
+    const p: Promise<any> = new Promise((resolve, reject) => {
+        const client: any = postsReadDbClient();
+        client.connect();
+        const query = 'SELECT * FROM files ORDER BY id DESC LIMIT 1';
+        client.query(query, (err: any, res: any) => {
+            if (err) {
+                console.log(err.stack);
+                reject(err);
+            } else {
+                resolve(res.rows);
+            }
+        });
+    });
+
+    const result: any = await p;
+    return result;
+}
+
 export default async function fetchFiles(page: number): Promise<any> {
     const p: Promise<any> = new Promise((resolve, reject) => {
         const client: any = postsReadDbClient();
@@ -22,7 +41,7 @@ export default async function fetchFiles(page: number): Promise<any> {
     return result;
 }
 
-export async function uploadFiles(name: string, token: string, url: string): Promise<any> {
+export async function uploadFiles(name: string, token: string, nameFile: string): Promise<any> {
     const p: Promise<any> = new Promise((resolve, reject) => {
         const client: any = postsReadDbClient();
         client.connect();
@@ -30,7 +49,7 @@ export async function uploadFiles(name: string, token: string, url: string): Pro
         const jakartaTimezone = 'Asia/Jakarta';
         const jakartaTime = now.toLocaleString('en-US', { timeZone: jakartaTimezone });
 
-        const query = `INSERT INTO files (name, url, upload_by, upload_at) VALUES ('${name}','${url}','${token}', '${jakartaTime}')`;
+        const query = `INSERT INTO files (name, url, upload_by, upload_at) VALUES ('${name}','${nameFile}','${token}', '${jakartaTime}')`;
         client.query(query, (err: any, res: any) => {
             if (err) {
                 console.log(err.stack);
@@ -72,15 +91,12 @@ export async function fetchLogin(username: any, password: any): Promise<any> {
         const client: any = postsReadDbClient();
 
         client.connect();
-        // console.log(client, "<<<< client")
-        // console.log(username, password, "<<<< username, password")
         const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`; 
         client.query(query, (err: any, res: any) => {
             if (err) {
                 console.log(err.stack);
                 reject(err);
             } else {
-                // console.log(res.rows);
                 resolve(res.rows);
             }
         });

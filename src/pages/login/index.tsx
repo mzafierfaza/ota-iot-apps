@@ -38,16 +38,17 @@ export default function LoginPage() {
   const [valueUname, setValueUname] = useState("");
   const [valuePass, setValuePass] = useState(""); 
   const router = useRouter();
-
+  const [loading, setLoading] = useState(false);
   console.log(valueUname, valuePass, "<<<< value")
 
 
   async function login(e: any) {
     console.log("login")
     e.preventDefault();
-    
 
-    // fetchLogin(username, password)
+    // create loading state
+    setLoading(true);
+    
     try {     
       const {data} =  await axios.get('/api/login', {
         params : {
@@ -57,27 +58,20 @@ export default function LoginPage() {
       })
       // console.log(data, "<<<< data")
       if (data.length === 0) {
+        setLoading(false);
         alert("Username or password is wrong")
         return;
       }
 
       // set cookie to save the token
-      const oneDay = 24 * 60 * 60 * 1000;
-      const fiveSeconds = 5 * 1000;
       const fiveMinute = 5 * 60 * 1000;
       const dateNow = new Date().toLocaleString("id-ID", {timeZone: "Asia/Jakarta"})
-      
-      // console.log(dateNow, "<<<< dateNow")
-      // console.log(expired, "<<<< expired")
-
-      // cookies.set('token', data[0].username, {expires: Date.now() + oneDay})
 
       setCookie(null, 'token', data[0].username, {
         maxAge: fiveMinute,
         path: '/',
       })
-      // localStorage.setItem("token", data[0].username)
-
+      // setLoading(false);
       router.push('/')
     } catch (error) {
       
@@ -92,13 +86,15 @@ export default function LoginPage() {
           <form>
           <Input type="username" id="username" name="username" 
           onChange={(e: any) => setValueUname(e.target.value)}
-           label="Username" placeholder="your usernames" autofocus={true}/>
-          <Input type="password" id="password" name="password" label="Password" placeholder="••••••••••"
+           label="Username" placeholder="username" autofocus={true}/>
+          <Input type="password" id="password" name="password" label="Password" placeholder="••••••"
             onChange={(e: any) => setValuePass(e.target.value)}
           />
-          <Button value="Submit" onClick={login} />
+          <Button value={loading ? "Loading..." : "Submit"} onClick={login}/>
           </form>
         </div>
+
+        
       </div>
     );
 }
