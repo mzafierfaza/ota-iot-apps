@@ -22,7 +22,8 @@
     "nookies": "^2.5.2",
     "pg": "^8.11.5",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "yarn": "^1.22.22"
   },
   "devDependencies": {
     "@types/formidable": "^3.4.5",
