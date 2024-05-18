@@ -1,12 +1,10 @@
-import Image from "next/image";
 import { Inter } from "next/font/google";
 import { useEffect, useRef, useState } from "react";
-import Snackbar, { SnackbarOrigin } from '@mui/material/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import axios from "axios";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button } from "@mui/material";
 import Paper from '@mui/material/Paper';
-import { create } from "domain";
 import { parseCookies } from "nookies";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
@@ -270,7 +268,7 @@ export default function Home() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {dataList.map((row, i) => (
+          {dataList.map((row: any, i) => (
             <TableRow
               key={i}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
@@ -293,7 +291,9 @@ export default function Home() {
                 </TableCell>
               <TableCell align="right">
                 {
-                row["upload_at"].split("T")[0]
+                  // row.upload_at -> row["upload_at"]
+                  row["upload_at"].split("T")[0]
+              //  (typeof row["upload_at"] === 'string') ? row["upload_at"].split("T")[0] : row["upload_at"].split(" ")[0]
               }
               </TableCell>
               <TableCell align="right">{row["upload_by"]}</TableCell>
