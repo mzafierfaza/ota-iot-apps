@@ -1,5 +1,5 @@
+"use server"
 import { postsReadDbClient } from "@/lib/db";
-import { NextRequest } from "next/server";
 
 export async function latestFile(): Promise<any> {
     const p: Promise<any> = new Promise((resolve, reject) => {
@@ -55,27 +55,6 @@ export async function uploadFiles(name: string, token: string, nameFile: string)
                 console.log(err.stack);
                 reject(err);
             } else {
-                resolve(res.rows);
-            }
-        });
-    });
-
-    const result: any = await p;
-    return result;
-}
-
-
-export async function fetchPosts(): Promise<any> {
-    const p: Promise<any> = new Promise((resolve, reject) => {
-        const client: any = postsReadDbClient();
-        client.connect();
-        const query = 'SELECT * FROM test';
-        client.query(query, (err: any, res: any) => {
-            if (err) {
-                console.log(err.stack);
-                reject(err);
-            } else {
-                // console.log(res.rows);
                 resolve(res.rows);
             }
         });

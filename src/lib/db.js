@@ -1,8 +1,5 @@
-// const { createServer } = require('http')
-// const { parse } = require('url')
-// const next = require('next')
-// import { Pool } from 'pg';
 
+// import { Pool } from 'pg';
 // const pool = new Pool({
 //   user: 'localdb',
 //   host: 'localhost',
@@ -10,11 +7,11 @@
 //   password: 'iatvmware',
 //   port: 5433, // port default PostgreSQL
 // });
-
-
 // export default pool
 
-const { Pool, Client } = require('pg')
+"use server";
+
+const { Client } = require('pg')
 
 export function postsReadDbClient() {
   return new Client({
