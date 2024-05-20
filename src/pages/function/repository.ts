@@ -3,11 +3,11 @@
 
 import { Pool } from 'pg';
 const pool = new Pool({
-  user: 'localdb',
-  host: 'localhost',
-  database: 'ota-iot',
-  password: 'iatvmware',
-  port: 5433, // port default PostgreSQL
+  user: process.env.NEXT_DB_USER,
+  host: process.env.NEXT_DB_HOST,
+  database: process.env.NEXT_DB_NAME,
+  password: process.env.NEXT_DB_PASS,
+  port: parseInt(process.env.NEXT_DB_PORT as string),
 });
 
 export async function latestFile(): Promise<any> {
