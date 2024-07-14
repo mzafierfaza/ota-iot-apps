@@ -3,11 +3,14 @@
 
 import { Pool } from 'pg';
 const pool = new Pool({
-  user: process.env.NEXT_DB_USER,
-  host: process.env.NEXT_DB_HOST,
-  database: process.env.NEXT_DB_NAME,
-  password: process.env.NEXT_DB_PASS,
-  port: parseInt(process.env.NEXT_DB_PORT as string),
+    user: process.env.NEXT_DB_USER,
+    host: process.env.NEXT_DB_HOST,
+    database: process.env.NEXT_DB_NAME,
+    password: process.env.NEXT_DB_PASS,
+    port: parseInt(process.env.NEXT_DB_PORT as string),
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 export async function latestFile(): Promise<any> {
@@ -79,7 +82,7 @@ export async function fetchLogin(username: any, password: any): Promise<any> {
     const p: Promise<any> = new Promise((resolve, reject) => {
         // const client: any = postsReadDbClient();
         // client.connect();
-        const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`; 
+        const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
         pool.query(query, (err: any, res: any) => {
             if (err) {
                 console.log(err.stack);
@@ -91,7 +94,7 @@ export async function fetchLogin(username: any, password: any): Promise<any> {
 
 
     });
-    
+
     const result: any = await p;
     // console.log("query", result, "<<<< result")
 
