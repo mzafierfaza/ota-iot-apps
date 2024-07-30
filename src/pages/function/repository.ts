@@ -8,9 +8,9 @@ const pool = new Pool({
     database: process.env.NEXT_DB_NAME,
     password: process.env.NEXT_DB_PASS,
     port: parseInt(process.env.NEXT_DB_PORT as string),
-    ssl: {
-        rejectUnauthorized: false
-    }
+    // ssl: {
+    //     rejectUnauthorized: false
+    // }
 });
 
 export async function latestFile(): Promise<any> {
